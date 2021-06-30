@@ -1,3 +1,18 @@
+#
+# muse
+# (c) 2021 - Zaidin Amiot
+#
+# See the file "UNLICENCE", included in this
+# distribution, for details about the copyright.
+#
+
+## This module provides th main entrypoint to [miniaudio](https://miniaud.io/)
+## through its wrapper [parasound](https://github.com/paranim/parasound).
+##
+## .. code-block::
+##   import player
+##
+##   play(FILENAME)
 import os
 import times
 {.warning[UnusedImport]: off.}
@@ -7,7 +22,8 @@ import parasound/dr_wav
 
 import metatags
 
-proc play*(data: string) =
+proc play*(filename: string) =
+  ## Plays `filename` if the file is a valid mp3 track.
   var
     decoder = newSeq[uint8](ma_decoder_size())
     decoderAddr = cast[ptr ma_decoder](decoder[0].addr)
@@ -15,14 +31,16 @@ proc play*(data: string) =
     deviceConfigAddr = cast[ptr ma_device_config](deviceConfig[0].addr)
     device = newSeq[uint8](ma_device_size())
     deviceAddr = cast[ptr ma_device](device[0].addr)
-  doAssert MA_SUCCESS == ma_decoder_init_file_mp3(data, nil, decoderAddr)
+  doAssert MA_SUCCESS == ma_decoder_init_file_mp3(filename, nil, decoderAddr)
 
-  let metas = readMetatags(data)
+  # Read and display metatags
+  let metas = readMetatags(filename)
   echo metas
 
+  # Duration in seconds can also be calculated using `frameCount` and `frameRate`
   #
   # let frameCount = ma_decoder_get_length_in_pcm_frames(decoderAddr)
-  # let duration = float(frameCount) / 44100
+  # let duration = float(frameCount) / frameRate
   # echo(fmt"{int(floor(duration / 60))}:{int(floorMod(duration, 60))}")
 
   proc data_callback(pDevice: ptr ma_device; pOutput: pointer; pInput: pointer;
@@ -47,4 +65,3 @@ proc play*(data: string) =
   discard ma_device_stop(deviceAddr)
   ma_device_uninit(deviceAddr)
   discard ma_decoder_uninit(decoderAddr)
-  quit(0)
