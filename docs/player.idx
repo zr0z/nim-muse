@@ -1,1 +1,2 @@
+PlaybackError	player.html#PlaybackError	player: PlaybackError	
 play	player.html#play,string	player: play(filename: string)	
