@@ -1,8 +1,16 @@
-# Thin wrapper around [taglib](https://taglib.org)
-# Requires the library to be installed with include files available
 #
-# based on https://github.com/alex-laskin/nim-taglib
-{.experimental.}
+# muse
+# (c) 2021 - Zaidin Amiot
+#
+# See the file "UNLICENCE", included in this
+# distribution, for details about the copyright.
+#
+
+## Thin wrapper around [TagLib](https://taglib.org).
+##
+## Requires the library to be installed with include files available.
+##
+## based on https://github.com/alex-laskin/nim-taglib
 {.deadCodeElim: on.}
 
 {.passl: "-ltag_c".}
@@ -55,7 +63,7 @@ type
     cfile: CFile
     tag: CTag
     ap: CAudioProperties
-  InvalidFileError = object of IOError
+  InvalidFileError* = object of IOError ## `IOError` thrown if file is not found or valid.
 
 proc init_file(path: string; cfile: CFile): File =
   if isNil(cfile):
@@ -86,24 +94,36 @@ proc close(file: var File) =
   file.ap = cast[CAudioProperties](0)
 
 type Metatags* = object
-  length*: int
-  bitrate*: int
-  samplerate*: int
-  channels*: int
-  title*: string
-  artist*: string
-  album*: string
-  comment*: string
-  genre*: string
-  year*: uint
-  track*: uint
+  ## Provides a data structure containing the tags of the track.
+  ## Supports ID3v1 and [ID3v2](https://id3.org).
+  ##
+  ## If a `string` tag is not defined an empty string is returned.
+  ##
+  ## Regarding `bitrate` value:
+  ## - For constant bitrate formats this is simply the bitrate of the file.
+  ## - For variable bitrate formats this is either the average or nominal bitrate.
+  length*: int ## Returns the length of the file in seconds.
+  bitrate*: int ## Returns the most appropriate bit rate for the file in kb/s.
+  samplerate*: int ## Returns the sample rate in Hz.
+  channels*: int ## Returns the number of audio channels.
+  title*: string ## Returns the title of the track.
+  artist*: string ## Returns the artist name.
+  album*: string ## Returns the album name.
+  comment*: string ## Returns the track comment.
+  genre*: string ## Returns the genre name.
+  year*: uint ## Returns the year.
+  track*: uint ## Returns the track number.
 
 proc duration*(metas: Metatags): string =
+  ## Returns formatted durations as `MM:SS`.
   let minutes = int(floor(metas.length / 60))
   let seconds = int(floorMod(metas.length, 60))
   &"{minutes}:{seconds}"
 
 proc readMetatags*(filename: string): Metatags =
+  ## Read metatags from `filename`.
+  ##
+  ## Throws a `InvalidFileError` if file doesn't exist or is not valid.
   var file = open(filename)
 
   let metas = Metatags(
@@ -124,4 +144,5 @@ proc readMetatags*(filename: string): Metatags =
   return metas
 
 proc `$`*(metas: Metatags): string =
+  ## Serializes tag as a string.
   &"{metas.artist} - {metas.title} [{metas.duration}]"

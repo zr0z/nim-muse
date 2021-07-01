@@ -1,0 +1,5 @@
+InvalidFileError	metatags.html#InvalidFileError	metatags: InvalidFileError	
+Metatags	metatags.html#Metatags	metatags: Metatags	
+duration	metatags.html#duration,Metatags	metatags: duration(metas: Metatags): string	
+readMetatags	metatags.html#readMetatags,string	metatags: readMetatags(filename: string): Metatags	
+`$`	metatags.html#$,Metatags	metatags: `$`(metas: Metatags): string	
