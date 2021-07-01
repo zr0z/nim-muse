@@ -21,4 +21,8 @@ $ nimble install
 muse PATH_TO_FILE.mp3
 ```
 
+# Resources
+
+[API Documentation](https://zr0z.github.io/nim-muse)
+
 2021 - muse is released under THE UNLICENSE.
