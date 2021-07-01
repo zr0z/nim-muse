@@ -16,3 +16,4 @@ requires "parasound >= 0.2.0"
 # tasks
 task documentation, "Generate documentation for the application":
   exec "nim doc --project --index:on --outdir:./docs src/muse.nim"
+  exec "mv docs/muse.html docs/index.html"
