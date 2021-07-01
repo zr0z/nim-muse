@@ -14,6 +14,7 @@
 ##
 ##   play(FILENAME)
 import os
+import strformat
 import times
 {.warning[UnusedImport]: off.}
 import parasound/miniaudio
@@ -21,6 +22,9 @@ import parasound/miniaudio
 import parasound/dr_wav
 
 import metatags
+
+type
+  PlaybackError* = object of IOError ## `IOError` thrown if playback fails.
 
 proc play*(filename: string) =
   ## Plays `filename` if the file is a valid mp3 track.
@@ -31,10 +35,15 @@ proc play*(filename: string) =
     deviceConfigAddr = cast[ptr ma_device_config](deviceConfig[0].addr)
     device = newSeq[uint8](ma_device_size())
     deviceAddr = cast[ptr ma_device](device[0].addr)
-  doAssert MA_SUCCESS == ma_decoder_init_file_mp3(filename, nil, decoderAddr)
+  if ma_decoder_init_file_mp3(filename, nil, decoderAddr) != MA_SUCCESS:
+    raise newException(PlaybackError, &"Failed to decode file named '{filename}'.")
 
   # Read and display metatags
-  let metas = readMetatags(filename)
+  var metas = try:
+      readMetatags(filename)
+    except InvalidFileError as e:
+      raise newException(PlaybackError, e.msg)
+
   echo metas
 
   # Duration in seconds can also be calculated using `frameCount` and `frameRate`
@@ -53,12 +62,12 @@ proc play*(filename: string) =
 
   if ma_device_init(nil, deviceConfigAddr, deviceAddr) != MA_SUCCESS:
     discard ma_decoder_uninit(decoderAddr)
-    quit("Failed to open playback device.")
+    raise newException(PlaybackError, "Failed to open playback device.")
 
   if ma_device_start(deviceAddr) != MA_SUCCESS:
     ma_device_uninit(deviceAddr)
     discard ma_decoder_uninit(decoderAddr)
-    quit("Failed to start playback device.")
+    raise newException(PlaybackError, "Failed to start playback device.")
 
   sleep(metas.length * 1000)
 
