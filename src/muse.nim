@@ -15,7 +15,7 @@ when isMainModule:
   if params.len > 0:
     try:
       play(params[0])
-    except PlaybackError as e:
-      echo e.msg
+    except PlaybackError:
+      echo getCurrentExceptionMsg()
   else:
     echo "muse PATH_TO_FILE.mp3"

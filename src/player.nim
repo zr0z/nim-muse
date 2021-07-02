@@ -41,8 +41,8 @@ proc play*(filename: string) =
   # Read and display metatags
   var metas = try:
       readMetatags(filename)
-    except InvalidFileError as e:
-      raise newException(PlaybackError, e.msg)
+    except InvalidFileError:
+      raise newException(PlaybackError, getCurrentExceptionMsg())
 
   echo metas
 
