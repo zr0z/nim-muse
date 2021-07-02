@@ -126,7 +126,10 @@ proc readMetatags*(filename: string): Metatags =
   ## Throws a `InvalidFileError` if file doesn't exist or is not valid.
   var file = open(filename)
 
-  let metas = Metatags(
+  defer:
+    close(file)
+
+  Metatags(
     length: taglib_audioproperties_length(file.ap),
     bitrate: taglib_audioproperties_bitrate(file.ap),
     samplerate: taglib_audioproperties_samplerate(file.ap),
@@ -139,9 +142,6 @@ proc readMetatags*(filename: string): Metatags =
     year: uint(taglib_tag_year(file.tag)),
     track: uint(taglib_tag_track(file.tag)),
   )
-
-  close(file)
-  return metas
 
 proc `$`*(metas: Metatags): string =
   ## Serializes tag as a string.

@@ -41,8 +41,8 @@ proc play*(filename: string) =
   # Read and display metatags
   var metas = try:
       readMetatags(filename)
-    except InvalidFileError as e:
-      raise newException(PlaybackError, e.msg)
+    except InvalidFileError:
+      raise newException(PlaybackError, getCurrentExceptionMsg())
 
   echo metas
 
@@ -60,17 +60,17 @@ proc play*(filename: string) =
   ma_device_config_init_with_decoder(deviceConfigAddr, ma_device_type_playback,
                                      decoderAddr, data_callback)
 
-  if ma_device_init(nil, deviceConfigAddr, deviceAddr) != MA_SUCCESS:
+  defer:
     discard ma_decoder_uninit(decoderAddr)
+
+  if ma_device_init(nil, deviceConfigAddr, deviceAddr) != MA_SUCCESS:
     raise newException(PlaybackError, "Failed to open playback device.")
 
-  if ma_device_start(deviceAddr) != MA_SUCCESS:
+  defer:
+    discard ma_device_stop(deviceAddr)
     ma_device_uninit(deviceAddr)
-    discard ma_decoder_uninit(decoderAddr)
+
+  if ma_device_start(deviceAddr) != MA_SUCCESS:
     raise newException(PlaybackError, "Failed to start playback device.")
 
   sleep(metas.length * 1000)
-
-  discard ma_device_stop(deviceAddr)
-  ma_device_uninit(deviceAddr)
-  discard ma_decoder_uninit(decoderAddr)
