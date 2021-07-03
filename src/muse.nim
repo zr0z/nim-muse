@@ -8,14 +8,36 @@
 
 import os
 import player
+import parseopt
+
+const USAGE = "Usage: muse PATH_TO_FILE.mp3"
+
+type Exit = enum
+  regular, invalid, error
 
 when isMainModule:
-  let params = commandLineParams()
+  for kind, key, _ in getOpt():
 
-  if params.len > 0:
-    try:
-      play(params[0])
-    except PlaybackError:
-      echo getCurrentExceptionMsg()
-  else:
-    echo "muse PATH_TO_FILE.mp3"
+    case kind
+    of cmdLongOption, cmdShortOption:
+      case key:
+        of "help", "h":
+          echo(USAGE)
+          quit(ord(regular))
+
+    of cmdArgument:
+      case splitFile(key).ext:
+        of ".mp3":
+          try:
+            play(key)
+            quit(ord(regular))
+          except PlaybackError:
+            echo getCurrentExceptionMsg()
+            quit(ord(error))
+
+    of cmdEnd: discard
+
+    echo("Invalid usage.")
+    echo(USAGE)
+    quit(ord(invalid))
+
